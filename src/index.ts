@@ -24,3 +24,35 @@ runAcp();
 
 // Keep process alive
 process.stdin.resume();
+
+// Export all public types and functions that were already exported
+export { ClaudeAcpAgent, toAcpNotifications, runAcp } from "./acp-agent.js";
+
+export {
+  ClaudePlanEntry,
+  toolInfoFromToolUse,
+  toolUpdateFromToolResult,
+  planEntries,
+  markdownEscape,
+} from "./tools.js";
+
+export {
+  Pushable,
+  ExtractLinesResult,
+  nodeToWebWritable,
+  nodeToWebReadable,
+  unreachable,
+  sleep,
+  loadManagedSettings,
+  applyEnvironmentSettings,
+  extractLinesWithByteLimit,
+} from "./utils.js";
+
+export {
+  SYSTEM_REMINDER,
+  toolNames,
+  createMcpServer,
+  createPermissionMcpServer,
+  PERMISSION_TOOL_NAME,
+  replaceAndCalculateLocation,
+} from "./mcp-server.js";
