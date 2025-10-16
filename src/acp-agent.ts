@@ -121,7 +121,7 @@ export class ClaudeAcpAgent implements Agent {
       ],
     };
   }
-  async newSession(params: NewSessionRequest): Promise<NewSessionResponse> {
+  async newSession(params: NewSessionRequest, options?: Options): Promise<NewSessionResponse> {
     if (
       fs.existsSync(path.resolve(os.homedir(), ".claude.json.backup")) &&
       !fs.existsSync(path.resolve(os.homedir(), ".claude.json"))
@@ -188,22 +188,18 @@ export class ClaudeAcpAgent implements Agent {
       }
     }
 
-    const options: Options = {
+    const newOptions: Options = {
+      ...options,
       cwd: params.cwd,
-      mcpServers,
-      systemPrompt,
-      settingSources: ["user", "project", "local"],
+      mcpServers: { ...(options?.mcpServers || {}), ...mcpServers },
+      systemPrompt: options?.systemPrompt || systemPrompt,
+      settingSources: options?.settingSources || ["user", "project", "local"],
       // If we want bypassPermissions to be an option, we have to start the session with it on.
       // We change it immediately back to default below before returning the session.
       permissionMode: "bypassPermissions",
       permissionPromptToolName: PERMISSION_TOOL_NAME,
-      stderr: (err) => console.error(err),
-      // note: although not documented by the types, passing an absolute path
-      // here works to find zed's managed node version.
-      executable: process.execPath as any,
-      ...(process.env.CLAUDE_CODE_EXECUTABLE && {
-        pathToClaudeCodeExecutable: process.env.CLAUDE_CODE_EXECUTABLE,
-      }),
+      stderr: options?.stderr || ((err) => console.error(err)),
+      executable: options?.executable,
     };
 
     const allowedTools = [];
@@ -221,15 +217,15 @@ export class ClaudeAcpAgent implements Agent {
     }
 
     if (allowedTools.length > 0) {
-      options.allowedTools = allowedTools;
+      newOptions.allowedTools = allowedTools;
     }
     if (disallowedTools.length > 0) {
-      options.disallowedTools = disallowedTools;
+      newOptions.disallowedTools = disallowedTools;
     }
 
     const q = query({
       prompt: input,
-      options,
+      options: newOptions,
     });
     const models = await getAvailableModels(q);
     const permissionMode = "default";
